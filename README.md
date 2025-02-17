@@ -1,4 +1,4 @@
-```markdown
+
 # RapidStack
 # “A Docker-FastAPI-React Starter for Quick Prototyping”
 
@@ -137,4 +137,4 @@ docker-auth-website/
 ## License
 
 This project is provided as an example. Feel free to adapt or extend it to suit your needs. 
-```
+
