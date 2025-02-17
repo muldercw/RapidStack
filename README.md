@@ -1,6 +1,6 @@
 
 # RapidStack
-# “A Docker-FastAPI-React Starter for Quick Prototyping”
+A Docker-FastAPI-React Starter for Quick Prototyping
 
 Have an idea but need a framework to start with? This repository provides a **minimal** working example of a **FastAPI** + **React** + **Postgres** setup with **JWT authentication**—all orchestrated via **Docker Compose**. 
 
