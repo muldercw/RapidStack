@@ -19,10 +19,11 @@ from .routes import users
 
 app = FastAPI()
 
-# Enable CORS for React on localhost:3000
+# ---- ALLOW ALL ORIGINS (LOCAL DEV ONLY) ----
+# This will prevent any CORS domain issues on localhost, 127.0.0.1, etc.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
@@ -103,6 +104,11 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 def create_user(db: Session, user: UserCreate):
+    # Check for duplicate username
+    existing_user = db.query(models.User).filter(models.User.username == user.username).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already taken.")
+
     hashed_password = get_password_hash(user.password)
     db_user = models.User(username=user.username, hashed_password=hashed_password)
     db.add(db_user)
@@ -211,7 +217,17 @@ python-jose[cryptography]
                     "Home.js": """import React from 'react';
 
 function Home() {
-    return <h1>Home Page</h1>;
+    const containerStyle = {
+        textAlign: 'center',
+        marginTop: '50px'
+    };
+
+    return (
+        <div style={containerStyle}>
+            <h1>Welcome Home</h1>
+            <p>Sign up or log in to get started!</p>
+        </div>
+    );
 }
 
 export default Home;
@@ -247,28 +263,54 @@ function Login() {
         }
     };
 
+    const formStyle = {
+        display: 'flex',
+        flexDirection: 'column',
+        maxWidth: '400px',
+        margin: '40px auto',
+        padding: '20px',
+        border: '1px solid #ccc',
+        borderRadius: '8px',
+    };
+
+    const inputStyle = {
+        marginBottom: '12px',
+        padding: '8px',
+        fontSize: '1rem'
+    };
+
+    const buttonStyle = {
+        padding: '10px',
+        fontSize: '1rem',
+        cursor: 'pointer',
+        backgroundColor: '#2196f3',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '4px'
+    };
+
     return (
-        <form onSubmit={handleSubmit}>
-            <h1>Login</h1>
-            <div>
-                <label>Username</label>
-                <input 
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                />
-            </div>
-            <div>
-                <label>Password</label>
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                />
-            </div>
-            <button type="submit">Login</button>
+        <form onSubmit={handleSubmit} style={formStyle}>
+            <h1 style={{ textAlign: 'center' }}>Login</h1>
+            <label>Username</label>
+            <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                style={inputStyle}
+                required
+            />
+
+            <label>Password</label>
+            <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={inputStyle}
+                required
+            />
+
+            <button type="submit" style={buttonStyle}>Login</button>
         </form>
     );
 }
@@ -303,28 +345,54 @@ function Signup() {
         }
     };
 
+    const formStyle = {
+        display: 'flex',
+        flexDirection: 'column',
+        maxWidth: '400px',
+        margin: '40px auto',
+        padding: '20px',
+        border: '1px solid #ccc',
+        borderRadius: '8px'
+    };
+
+    const inputStyle = {
+        marginBottom: '12px',
+        padding: '8px',
+        fontSize: '1rem'
+    };
+
+    const buttonStyle = {
+        padding: '10px',
+        fontSize: '1rem',
+        cursor: 'pointer',
+        backgroundColor: '#4caf50',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '4px'
+    };
+
     return (
-        <form onSubmit={handleSubmit}>
-            <h1>Signup</h1>
-            <div>
-                <label>Username</label>
-                <input 
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                />
-            </div>
-            <div>
-                <label>Password</label>
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                />
-            </div>
-            <button type="submit">Sign Up</button>
+        <form onSubmit={handleSubmit} style={formStyle}>
+            <h1 style={{ textAlign: 'center' }}>Signup</h1>
+            <label>Username</label>
+            <input 
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                style={inputStyle}
+                required
+            />
+
+            <label>Password</label>
+            <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={inputStyle}
+                required
+            />
+
+            <button type="submit" style={buttonStyle}>Sign Up</button>
         </form>
     );
 }
@@ -364,10 +432,39 @@ function Dashboard() {
         });
     }, [token]);
 
+    const containerStyle = {
+        maxWidth: '600px',
+        margin: '40px auto',
+        textAlign: 'center',
+        padding: '20px',
+        border: '1px solid #ccc',
+        borderRadius: '8px'
+    };
+
+    // Sign out function
+    const handleSignOut = () => {
+        // Clear token from localStorage
+        localStorage.removeItem('token');
+        // Redirect to login page
+        window.location.href = '/login';
+    };
+
+    const buttonStyle = {
+        marginTop: '20px',
+        padding: '10px',
+        fontSize: '1rem',
+        cursor: 'pointer',
+        backgroundColor: '#f44336',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '4px'
+    };
+
     return (
-        <div>
+        <div style={containerStyle}>
             <h1>Dashboard</h1>
             <p>{message}</p>
+            <button onClick={handleSignOut} style={buttonStyle}>Sign Out</button>
         </div>
     );
 }
